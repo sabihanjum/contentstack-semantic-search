@@ -1,6 +1,6 @@
 import express from "express";
 import { generateEmbeddings } from "../services/openai.js";
-import { getPineconeClient } from "../services/pinecone.js";
+import { searchVector } from "../services/pinecone.js";
 
 const router = express.Router();
 
@@ -12,18 +12,12 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Query is required" });
     }
 
-    // ✅ Generate embeddings using Gemini
+    // ✅ Generate embeddings
     const vector = await generateEmbeddings(query);
 
-    // ✅ Search Pinecone
-    const client = getPineconeClient();
-    const index = client.Index(process.env.PINECONE_INDEX);
-
-    const searchResponse = await index.query({
-      vector,
-      topK: 5,
-      includeMetadata: true,
-    });
+    // ✅ Search Pinecone (reuse helper)
+    const searchResponse = await searchVector(vector, 5, "product"); 
+    // you can change "product" → "tour" or dynamic namespace later
 
     res.json(searchResponse);
   } catch (error) {

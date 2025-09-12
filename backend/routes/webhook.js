@@ -5,7 +5,7 @@ import { fetchEntryByUid } from "../services/contentstack.js";
 import { generateEmbeddings } from "../services/openai.js";
 
 // import { upsertVectors, deleteByFilter } from "../services/vector.js";
-import { upsertVector } from "../services/pinecone.js";
+import { upsertVectors } from "../services/pinecone.js";
 
 
 const router = express.Router();

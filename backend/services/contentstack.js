@@ -1,38 +1,40 @@
-// services/contentstack.js
 import contentstack from "contentstack";
 import dotenv from "dotenv";
+
 dotenv.config();
 
+// ✅ Initialize Contentstack Stack
 const Stack = contentstack.Stack({
   api_key: process.env.CONTENTSTACK_API_KEY,
   delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN,
   environment: process.env.CONTENTSTACK_ENVIRONMENT,
+  region: contentstack.Region.EU,   // ✅ Your stack is in EU region
+  host: process.env.CONTENTSTACK_API_HOST || "preview.contentstack.io" // ✅ Use Preview API
 });
 
-// Fetch all entries of a content type
+// ✅ Fetch all entries of a content type
 export async function fetchEntries(contentType) {
   return new Promise((resolve, reject) => {
-    Stack.ContentType(contentType)
-      .Query()
-      .toJSON()   // <-- must come before .find()
+    const Query = Stack.ContentType(contentType).Query();
+
+    Query
+      .toJSON()
       .find()
-      .then(
-        (result) => {
-          const entries = result[0] || [];
-          resolve(entries);
-        },
-        (error) => reject(error)
-      );
+      .then((result) => {
+        resolve(result[0] || []); // ✅ return entries array
+      })
+      .catch((err) => reject(new Error("Contentstack fetch failed: " + err.message)));
   });
 }
 
-// Fetch a single entry by UID
+// ✅ Fetch a single entry by UID
 export async function fetchEntryByUid(contentType, uid) {
   return new Promise((resolve, reject) => {
     Stack.ContentType(contentType)
       .Entry(uid)
-      .toJSON()   // <-- must come before .fetch()
+      .toJSON()
       .fetch()
-      .then(resolve, reject);
+      .then((entry) => resolve(entry))
+      .catch((err) => reject(new Error("Contentstack fetch by UID failed: " + err.message)));
   });
 }

@@ -1,29 +1,33 @@
+// routes/indexer.js
 import express from "express";
 import { fetchEntries } from "../services/contentstack.js";
 import { generateEmbeddings } from "../services/openai.js";
-import { index } from "../services/pinecone.js";
+import { upsertVectors } from "../services/pinecone.js"; // ✅ correct import
 
 const router = express.Router();
 
+// POST /index/:type → index entries of a content type
 router.post("/:type", async (req, res) => {
   try {
     const { type } = req.params;
     console.log(`Indexing content type: ${type}`);
 
+    // Fetch entries from Contentstack
     const entries = await fetchEntries(type);
 
     if (!entries || entries.length === 0) {
       return res.status(404).json({ error: "No entries found" });
     }
 
+    // Generate embeddings for each entry
     const vectors = await Promise.all(
       entries.map(async (entry) => {
         const text = `${entry.title || ""} ${entry.description || ""}`;
         const embedding = await generateEmbeddings(text);
 
         return {
-          id: entry.uid,
-          values: embedding,
+          id: entry.uid, // unique identifier for Pinecone
+          values: embedding, // numeric vector
           metadata: {
             title: entry.title,
             description: entry.description,
@@ -32,10 +36,11 @@ router.post("/:type", async (req, res) => {
       })
     );
 
-    await index.upsert({
-      vectors,
-      namespace: type,
-    });
+    // Debug log: show what’s being sent to Pinecone
+    console.log("Vectors to upsert:", JSON.stringify(vectors, null, 2));
+
+    // Save embeddings into Pinecone, under namespace = type
+    await upsertVectors(vectors, type);
 
     res.json({ success: true, count: vectors.length });
   } catch (err) {
@@ -43,23 +48,5 @@ router.post("/:type", async (req, res) => {
     res.status(500).json({ error: "Indexing failed", details: err.message });
   }
 });
-
-// Debug only: fetch all products once when server starts
-if (process.env.NODE_ENV === "dev") {
-  (async () => {
-    try {
-      const testEntries = await fetchEntries("product");
-      console.log("Fetched entries count:", testEntries.length);
-
-      if (testEntries.length > 0) {
-        const firstEntry = testEntries[0];
-        console.log("First entry title:", firstEntry.title);
-      }
-    } catch (err) {
-      console.error("Test fetchEntries failed:", err.message);
-    }
-  })();
-}
-
 
 export default router;
