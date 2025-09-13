@@ -1,11 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://contentstack-semantic-search-backend.onrender.com";
 
 export async function searchContent(query) {
   const res = await fetch(`${API_URL}/search`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query }),
   });
 
