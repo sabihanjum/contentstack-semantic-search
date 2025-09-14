@@ -6,10 +6,10 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Allow both local dev + deployed frontend + Contentstack
+// ✅ Allow local dev, deployed frontend, and Contentstack
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://contentstack-semantic-search-einv.vercel.app/",
+  "https://contentstack-semantic-search-frontend.onrender.com", // 🔥 no trailing slash
   "https://app.contentstack.com"
 ];
 
