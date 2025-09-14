@@ -9,7 +9,7 @@ const app = express();
 // ✅ Allow both local dev + deployed frontend + Contentstack
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://contentstack-semantic-search-byhs.vercel.app/",
+  "https://contentstack-semantic-search-einv.vercel.app/",
   "https://app.contentstack.com"
 ];
 
